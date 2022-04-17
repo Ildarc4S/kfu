@@ -2,17 +2,20 @@
 #include <cmath>
 #include <ctime>
 
-#define NON
-//#define PRINT
+                 //РАСКОМЕНТИРУЙ ЧТОБЫ:
+//#define NON                       // ВКЛЮЧИТЬ РЕШЕНИЕ НЕЛИНЕЙНОГО УРАВНЕНИЯ
+//define INTEG                      // ВКЛЮЧИТЬ РЕШЕНИЕ ИНТЕГРАЛА
+//#define PRINT                     // ВКЛЮЧИТЬ АВОМАТИЧЕСКОЕ СРАВНЕНИЕ МЕТОДОВ ИНТЕГРИРОВАНИЯ 
 
 double a{ }, b{  }, e{ };
 
 double timef(double f(void))
 {
-    clock_t start = clock();
+    clock_t start = clock(); //фиксирование времени перед функцией
     f();
-    clock_t end = clock();
-    double seconds = (double)(end - start) / CLOCKS_PER_SEC;
+    clock_t end = clock();//фиксирование времени после выполнения функции
+    double seconds = (double)(end - start) / CLOCKS_PER_SEC; // CLOCKS_PER_SEC - число тактов, выполняемое процессором в секунду
+
     return seconds;
 }
 
@@ -136,11 +139,12 @@ int main() {
     input(a, b, e);//ввод данных для нелинейных ур-ий:  a и b - границы, e - точность
     double result = nonlinearEquations::funcNonlinearEquationSolve();
     std::cout << "Корень: " << result << std::endl;
+#endif // NON
 
     std::cout << "_________________________________" << std::endl;
     std::cout << "\n";
 
-#endif // NON
+#ifdef INTEG
 
     std::cout << "_______Интегралы_____" << std::endl;
     input(a, b, e); //ввод данных для интегралов:   a и b - границы, e - точность
@@ -151,7 +155,8 @@ int main() {
     timeSimpsonIntegral = timef(Integral::mainSimpsonIntegral);//замер времени второго алгоритма
     std::cout << "Интеграл(Симпсон) = " << Integral::mainSimpsonIntegral() << std::endl;
 
-#ifdef PRINT
+
+#ifndef PRINT
     {
         std::cout << "\nВремя первого алгоритма = " << timeRectangleIntegral << std::endl;
         std::cout << "\nВремя второго алгоритма = " << timeSimpsonIntegral << std::endl;
@@ -159,7 +164,7 @@ int main() {
     }
 #endif
 
-#ifndef PRINT
+#ifdef PRINT
     if (timeRectangleIntegral > timeSimpsonIntegral)
     {
         std::cout << "\nМетод Cимпсона быстрее!" << std::endl;
@@ -169,6 +174,8 @@ int main() {
         std::cout << "\nМетод прямоугольников быстрее!" << std::endl;
     }
 #endif 
+
+#endif // INTEG
 
 }
 
