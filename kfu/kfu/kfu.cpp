@@ -1,13 +1,12 @@
 ﻿#include <iostream>
 #include <cmath>
-#include <ctime>
+#include <Windows.h>
+
 
                  //РАСКОМЕНТИРУЙ ЧТОБЫ:
 //#define NON                       // ВКЛЮЧИТЬ РЕШЕНИЕ НЕЛИНЕЙНОГО УРАВНЕНИЯ
 //#define INTEG                      // ВКЛЮЧИТЬ РЕШЕНИЕ ИНТЕГРАЛА
 //#define PRINT                     // ВКЛЮЧИТЬ АВОМАТИЧЕСКОЕ СРАВНЕНИЕ МЕТОДОВ ИНТЕГРИРОВАНИЯ 
-
-
 
 namespace addition
 {
@@ -15,19 +14,26 @@ namespace addition
 
     double timeRectangleIntegral{};
     double timeSimpsonIntegral{};
+    double timeNonLinear{};
+    double timeNonLinearNewton{};
 
     double timef(double f(void));
+    double timeg(double f(void));
 
     template <typename T>
-    void input(T& a, T& b, T& eps);
+    void input(T& a, T& b, T& e);
 
     double funcIntegral(double x);
     double funcNonLinear(double x);
+    double funcNonLinearDerivativeOne(double x);
+    double funcNonLinearDerivativeTwo(double x);
 }
 
 namespace nonlinearEquations 
 {
+
     double funcNonlinearEquationSolve();
+    double funcNonlinearEquationSolveNewton();
 }
 
 namespace Integral
@@ -46,11 +52,35 @@ int main() {
 
 #ifdef NON
 
-    std::cout << "_______Нелинейные уравнения_____" << std::endl;
+    std::cout << "_______Нелинейные уравнения_____" << std::endl;//0 2 0.001
 
     addition::input(addition::a, addition::b, addition::e);//ввод данных для нелинейных ур-ий:  a и b - границы, e - точность
-    double result = nonlinearEquations::funcNonlinearEquationSolve();
-    std::cout << "Корень: " << result << std::endl;
+
+    addition::timeNonLinear = addition::timef(nonlinearEquations::funcNonlinearEquationSolve);
+    std::cout << "Корень = " << nonlinearEquations::funcNonlinearEquationSolve() << std::endl;
+
+    addition::timeNonLinearNewton = addition::timef(nonlinearEquations::funcNonlinearEquationSolveNewton);
+    std::cout << "Корень = " << nonlinearEquations::funcNonlinearEquationSolveNewton() << std::endl;
+
+#ifndef PRINT
+    {
+        std::cout << "\nВремя первого алгоритма = " << addition::timeNonLinear << std::endl;
+        std::cout << "\nВремя второго алгоритма = " << addition::timeNonLinearNewton << std::endl;
+
+    }
+#endif //PRINT
+
+#ifdef PRINT
+    if (addition::timeNonLinearNewton > addition::timeNonLinear)
+    {
+        std::cout << "\nМетод отрезков быстрее!" << std::endl;
+    }
+    else
+    {
+        std::cout << "\nМетод Ньютона быстрее!" << std::endl;
+    }
+#endif //PRINT
+
 #endif // NON
 
     std::cout << "_________________________________" << std::endl;
@@ -93,29 +123,40 @@ int main() {
 }
 
 template <typename T>
-void addition::input(T& a, T& b, T& eps)
+void addition::input(T& a, T& b, T& e)
 {
     std::cout << "Введите левую границу = ";
     std::cin >> a;
     std::cout << "\nВведите правую границу = ";
     std::cin >> b;
     std::cout << "\nВведите точность = ";
-    std::cin >> eps;
+    std::cin >> e;
     std::cout << "\n";
 }
+
 double addition::timef(double f(void))
 {
-    clock_t start = clock(); //фиксирование времени перед функцией
+    double start = clock(); //фиксирование времени перед функцией
     f();
-    clock_t end = clock();//фиксирование времени после выполнения функции
-    double seconds = (double)(end - start) / CLOCKS_PER_SEC; // CLOCKS_PER_SEC - число тактов, выполняемое процессором в секунду
-
+    Sleep(1);
+    double end = clock();//фиксирование времени после выполнения функции
+    double seconds = double(end - start)/ CLOCKS_PER_SEC; // CLOCKS_PER_SEC - число тактов, выполняемое процессором в секунду
     return seconds;
 }
+
 double addition::funcNonLinear(double x)
 {
-    return sin(x) - 1 / x;
+    return x - sin(x) - 0.5;
 }
+double addition::funcNonLinearDerivativeOne(double x)
+{
+    return 1 - cos(x);
+}
+double addition::funcNonLinearDerivativeTwo(double x)
+{
+    return sin(x);
+}
+
 double addition::funcIntegral(double x)
 {
     return 10-x;
@@ -136,6 +177,37 @@ double nonlinearEquations::funcNonlinearEquationSolve()
     } while (addition::b - addition::a > 2 * addition::e); //(b-a)/2 - полученная нами точность 
                              // сравниваем заданную точность с полученной точностью
     return (addition::a + addition::b) / 2;
+}
+double nonlinearEquations::funcNonlinearEquationSolveNewton()
+{
+    double x;
+    int k;
+    if (addition::funcNonLinear(addition::a) * addition::funcNonLinearDerivativeTwo(addition::a) > 0)
+    {
+        x = addition::a;
+    }
+    else if (addition::funcNonLinear(addition::b) * addition::funcNonLinearDerivativeTwo(addition::b) > 0)
+    {
+        x = addition::b;
+    }
+    else
+    {
+        x = -10E10;
+    }
+    if (x > -10E10)
+    {
+        k = 0;
+        while (true)
+        {
+            x -= addition::funcNonLinear(x) / addition::funcNonLinearDerivativeOne(x);
+            k++;
+            if (fabs(addition::funcNonLinear(x)) < addition::e)
+            {
+                break;
+            }
+        }
+    }
+    return x;
 }
 
 double Integral::rectangleIntegral(double a, double b, int n)
