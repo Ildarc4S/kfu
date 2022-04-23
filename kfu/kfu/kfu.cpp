@@ -18,7 +18,7 @@ namespace addition
     double timeNonLinearNewton{};
 
     double timef(double f(void));
-    double timeg(double f(void));
+
 
     template <typename T>
     void input(T& a, T& b, T& e);
@@ -88,7 +88,7 @@ int main() {
 
 #ifdef INTEG
 
-    std::cout << "_______Интегралы_____" << std::endl;
+    std::cout << "_______Интегралы_____" << std::endl; // 1 7 0.0001
     addition::input(addition::a, addition::b, addition::e); //ввод данных для интегралов:   a и b - границы, e - точность
 
     addition::timeRectangleIntegral = addition::timef(Integral::mainRectangleIntegral);  //замер времени первого алгоритма
@@ -137,8 +137,10 @@ void addition::input(T& a, T& b, T& e)
 double addition::timef(double f(void))
 {
     double start = clock(); //фиксирование времени перед функцией
+
     f();
     Sleep(1);
+    
     double end = clock();//фиксирование времени после выполнения функции
     double seconds = double(end - start)/ CLOCKS_PER_SEC; // CLOCKS_PER_SEC - число тактов, выполняемое процессором в секунду
     return seconds;
