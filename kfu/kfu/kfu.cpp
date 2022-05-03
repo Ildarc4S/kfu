@@ -1,273 +1,160 @@
 ﻿#include <iostream>
 #include <cmath>
-#include <Windows.h>
 
-
-                 //РАСКОМЕНТИРУЙ ЧТОБЫ:
-//#define NON                       // ВКЛЮЧИТЬ РЕШЕНИЕ НЕЛИНЕЙНОГО УРАВНЕНИЯ
-//#define INTEG                      // ВКЛЮЧИТЬ РЕШЕНИЕ ИНТЕГРАЛА
-//#define PRINT                     // ВКЛЮЧИТЬ АВОМАТИЧЕСКОЕ СРАВНЕНИЕ МЕТОДОВ ИНТЕГРИРОВАНИЯ 
-
-namespace addition
+double integrlFunc(double x)
 {
-    double a{ }, b{  }, e{ };
-
-    double timeRectangleIntegral{};
-    double timeSimpsonIntegral{};
-    double timeNonLinear{};
-    double timeNonLinearNewton{};
-
-    double timef(double f(void));
-
-
-    template <typename T>
-    void input(T& a, T& b, T& e);
-
-    double funcIntegral(double x);
-    double funcNonLinear(double x);
-    double funcNonLinearDerivativeOne(double x);
-    double funcNonLinearDerivativeTwo(double x);
+	return sin(x);
+}
+double func(double x)
+{
+	return pow(x, 3) - 7 * pow(x, 2) +7* x + 15;
+}
+double funcDerivativeOne(double x)
+{
+	return 3*pow(x, 2) - 14 * x + 7;
+}
+double funcDerivativeTwo(double x)
+{
+	return 6*x - 14;
 }
 
-namespace nonlinearEquations 
+void iterFunc(double f(double, double, double,int &), double a, double b, double e)
 {
-
-    double funcNonlinearEquationSolve();
-    double funcNonlinearEquationSolveNewton();
+	int n = 1;
+	for (double i = a; i < b; i += 0.005)
+	{
+		int iter = 0;
+		if (func(a) * func(i) < 0)
+		{
+			std::cout << "Root#" <<n << " = " << f(a, i, e, iter) << std::endl;
+			std::cout << "Iter =  " << iter << "\n\n";
+			n++;
+			a = i;
+		}
+	}
 }
 
-namespace Integral
+
+
+double funcNonlinearEquationSolve(double a, double b, double e,int &iter)
 {
-    double rectangleIntegral(double a, double b, int n);
-    double mainRectangleIntegral();
+	double c = 0.0;
 
-    double simpsonIntegral(double a, double b, int n);
-    double mainSimpsonIntegral();
+	do
+	{
+		c = (a + b) / 2;
 
+		if (func(a) * func(c) < 0)
+		{
+			b = c;
+		}
+		else
+		{
+			a = c;
+		}
+
+		iter++;
+
+	} while ((fabs(b - a)) > e);
+
+	return c;
 }
+double funcNonlinearEquationSolveNewton(double a,double b,double e, int& iter)
+{
 
-int main() {
+	double x0, xn;
 
-    setlocale(LC_ALL, "Rus");
+	if (func(a) * func(b) < 0) 
+	{
+		if (func(a) * funcDerivativeTwo(a) > 0) //выбирается такое число x0, при котором f(x0) имеет тот же знак, что и f''(x0)
+			x0 = a;                             //выбирается точка с абсциссой x0, в которой касательная к кривой y = f(x) на отрезке[a; b] пересекает ось Ox.
+		else
+			x0 = b;
 
-#ifdef NON
+		xn = x0 - func(x0) / funcDerivativeOne(x0); // считаем первое приближение
 
-    std::cout << "_______Нелинейные уравнения_____" << std::endl;//0 2 0.001
+		while (fabs(x0-xn) > e) // пока не достигнем необходимой точности, будет продолжать вычислять
+		{
+			x0 = xn;
+			if (funcDerivativeOne == 0)
+				break;
 
-    addition::input(addition::a, addition::b, addition::e);//ввод данных для нелинейных ур-ий:  a и b - границы, e - точность
+			iter++;
+			xn = x0 - func(x0) / funcDerivativeOne(x0); // формула Ньютона
+		}
+	}
+	else
+	{
+		return 0;
+	}
 
-    addition::timeNonLinear = addition::timef(nonlinearEquations::funcNonlinearEquationSolve);
-    std::cout << "Корень = " << nonlinearEquations::funcNonlinearEquationSolve() << std::endl;
-
-    addition::timeNonLinearNewton = addition::timef(nonlinearEquations::funcNonlinearEquationSolveNewton);
-    std::cout << "Корень = " << nonlinearEquations::funcNonlinearEquationSolveNewton() << std::endl;
-
-#ifndef PRINT
-    {
-        std::cout << "\nВремя первого алгоритма = " << addition::timeNonLinear << std::endl;
-        std::cout << "\nВремя второго алгоритма = " << addition::timeNonLinearNewton << std::endl;
-
-    }
-#endif //PRINT
-
-#ifdef PRINT
-    if (addition::timeNonLinearNewton > addition::timeNonLinear)
-    {
-        std::cout << "\nМетод отрезков быстрее!" << std::endl;
-    }
-    else
-    {
-        std::cout << "\nМетод Ньютона быстрее!" << std::endl;
-    }
-#endif //PRINT
-
-#endif // NON
-
-    std::cout << "_________________________________" << std::endl;
-    std::cout << "\n";
-
-#ifdef INTEG
-
-    std::cout << "_______Интегралы_____" << std::endl; // 1 7 0.0001
-    addition::input(addition::a, addition::b, addition::e); //ввод данных для интегралов:   a и b - границы, e - точность
-
-    addition::timeRectangleIntegral = addition::timef(Integral::mainRectangleIntegral);  //замер времени первого алгоритма
-    std::cout << "Интеграл(прямоугольник) = " << Integral::mainRectangleIntegral() << std::endl;
-
-    addition::timeSimpsonIntegral = addition::timef(Integral::mainSimpsonIntegral);//замер времени второго алгоритма
-    std::cout << "Интеграл(Симпсон) = " << Integral::mainSimpsonIntegral() << std::endl;
-
-
-#ifndef PRINT
-    {
-        std::cout << "\nВремя первого алгоритма = " << addition::timeRectangleIntegral << std::endl;
-        std::cout << "\nВремя второго алгоритма = " << addition::timeSimpsonIntegral << std::endl;
-
-    }
-#endif //PRINT
-
-#ifdef PRINT
-    if (addition::timeRectangleIntegral > addition::timeSimpsonIntegral)
-    {
-        std::cout << "\nМетод Cимпсона быстрее!" << std::endl;
-    }
-    else
-    {
-        std::cout << "\nМетод прямоугольников быстрее!" << std::endl;
-    }
-#endif //PRINT
-
-
-#endif // INTEG
+	return xn;
 
 }
 
-template <typename T>
-void addition::input(T& a, T& b, T& e)
+double integralLeftRectangle(double a, double b, double n)
 {
-    std::cout << "Введите левую границу = ";
-    std::cin >> a;
-    std::cout << "\nВведите правую границу = ";
-    std::cin >> b;
-    std::cout << "\nВведите точность = ";
-    std::cin >> e;
-    std::cout << "\n";
+	double sum{ 0.0 }, h = (b - a) / n;
+
+	for (int i = 0; i < n-1; i++)
+	{
+		sum += h * func(a + i * h);
+	}
+
+	return sum;
+}
+double integralSimpson(double a, double b, double n)
+{
+	double sum = integrlFunc(a)+integrlFunc(b), h = (b - a) / n;
+	int ind;
+
+	for (int i = 1; i < n - 1; i++)
+	{
+		ind = 2 + 2 * (i % 2);//умножение либо на 4, либо на 2 в зависимости от четноти i
+		sum += ind * func(a + i * h);
+	}
+	sum *= h / 3;
+
+	return sum;
 }
 
-double addition::timef(double f(void))
+void Integral(double f(double, double, double), double a, double b, double e)
 {
-    double start = clock(); //фиксирование времени перед функцией
 
-    f();
-    Sleep(1);
-    
-    double end = clock();//фиксирование времени после выполнения функции
-    double seconds = double(end - start)/ CLOCKS_PER_SEC; // CLOCKS_PER_SEC - число тактов, выполняемое процессором в секунду
-    return seconds;
+	double s1, s;
+	int n = 1; //начальное число шагов
+
+
+	s1 = f(a, b, n); //первое приближение для интеграла
+	do {
+		s = s1;     //второе приближение
+		n = 2 * n;  // уменьшение значения шага в два раза
+		s1 = f(a, b, n);
+	} while (abs(s1 - s) > e);  //сравнение приближений с точностью
+
+	std::cout << s1 << "\n";
 }
 
-double addition::funcNonLinear(double x)
+int main()
 {
-    return x - sin(x) - 0.5;
-}
-double addition::funcNonLinearDerivativeOne(double x)
-{
-    return 1 - cos(x);
-}
-double addition::funcNonLinearDerivativeTwo(double x)
-{
-    return sin(x);
-}
+	//нелинейные уравнения
 
-double addition::funcIntegral(double x)
-{
-    return 10-x;
-}
-
-double nonlinearEquations::funcNonlinearEquationSolve()
-{
-    double c{ };
-
-    do {
-        c = (addition::a + addition::b) / 2; //выбор середины отрезка в качестве приблежения корня
-
-        //////выбор отрезка
-        if (addition::funcNonLinear(addition::a) * addition::funcNonLinear(c) <= 0) { addition::b = c; }
-        else { addition::a = c; }
-        /////////
-
-    } while (addition::b - addition::a > 2 * addition::e); //(b-a)/2 - полученная нами точность 
-                             // сравниваем заданную точность с полученной точностью
-    return (addition::a + addition::b) / 2;
-}
-double nonlinearEquations::funcNonlinearEquationSolveNewton()
-{
-    double x;
-    int k;
-    if (addition::funcNonLinear(addition::a) * addition::funcNonLinearDerivativeTwo(addition::a) > 0)
-    {
-        x = addition::a;
-    }
-    else if (addition::funcNonLinear(addition::b) * addition::funcNonLinearDerivativeTwo(addition::b) > 0)
-    {
-        x = addition::b;
-    }
-    else
-    {
-        x = -10E10;
-    }
-    if (x > -10E10)
-    {
-        k = 0;
-        while (true)
-        {
-            x -= addition::funcNonLinear(x) / addition::funcNonLinearDerivativeOne(x);
-            k++;
-            if (fabs(addition::funcNonLinear(x)) < addition::e)
-            {
-                break;
-            }
-        }
-    }
-    return x;
-}
-
-double Integral::rectangleIntegral(double a, double b, int n)
-{
-    double x, h;
-    double sum = { 0.0 };
-
-    h = (b - a) / n;  //шаг
-
-    for (int i = 0; i < n; i++) {
-        x = a + i * h;
-        sum += addition::funcIntegral(x);
-    }
-    return (sum * h); //приближенное значение интеграла равно 
-                      //сумма площадей прямоугольников
-}
-double Integral::simpsonIntegral(double a, double b, int n)
-{
-    const double h = (b - a) / n;
-    double k1{ 0.0 }, k2{ 0.0 };
-
-    for (int i = 1; i < n; i += 2)
-    {
-        k1 += addition::funcIntegral(a + i * h);
-        k2 += addition::funcIntegral(a + (i + 1) * h);
-    }
-
-    return h / 3 * (addition::funcIntegral(a) + 4 * k1 + 2 * k2);
-}
-double Integral::mainRectangleIntegral()
-{
-
-    double s1, s;
-    int n = 1; //начальное число шагов
-
-    s1 = Integral::rectangleIntegral(addition::a, addition::b, n); //первое приближение для интеграла
-
-    do {
-        s = s1;     //второе приближение
-        n = 2 * n;  //уменьшение значения шага в два раза
-
-        s1 = Integral::rectangleIntegral(addition::a, addition::b, n);
-    } while (abs(s1 - s) > addition::e);  //сравнение приближений  c точностью
-    
-    return s1;
-}
-double Integral::mainSimpsonIntegral()
-{
-    double s1, s;
-    int n = 1; //начальное число шагов
+	double a = -4.0, b = 6.0, e = 0.0001;
+	std::cout << "-----NonLinear equations---------" << "\n" << std::endl;
+	
+	iterFunc(funcNonlinearEquationSolveNewton, a, b, e);
+	iterFunc(funcNonlinearEquationSolve, a, b, e);
 
 
-    s1 = Integral::simpsonIntegral(addition::a, addition::b, n); //первое приближение для интеграла
-    do {
-        s = s1;     //второе приближение
-        n = 2 * n;  // уменьшение значения шага в два раза
-        s1 = Integral::simpsonIntegral(addition::a, addition::b, n);
-    } while (abs(s1 - s) > addition::e);  //сравнение приближений с точностью
+	//интегралы
+	a = 1.0;
+	b = 2.0;
+	e = 0.0001;
+	std::cout << "-----Integral---------" << "\n" << std::endl;
 
-    return s1;
+	
+	Integral(integralLeftRectangle,a, b, e);	
+	Integral(integralSimpson, a, b, e);
+	
+	return 0;
 }
